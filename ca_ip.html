@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canada IP Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+        .ip-display {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .location-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .generate-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+            transition: transform 0.2s;
+        }
+        .generate-btn:hover {
+            transform: translateY(-2px);
+        }
+        .status {
+            text-align: center;
+            margin: 10px 0;
+            font-style: italic;
+        }
+        .flag {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="flag">🇨🇦</div>
+        <h1>Canada IP Generator</h1>
+        
+        <div class="status" id="status">Ready to generate Canada IP address</div>
+        
+        <button class="generate-btn" onclick="generateCAIP()">Generate Canada IP Address</button>
+        
+        <div class="ip-display" id="ipDisplay" style="display: none;">
+            <div id="ipAddress"></div>
+        </div>
+        
+        <div class="location-info" id="locationInfo" style="display: none;">
+            <strong>Location:</strong> <span id="location"></span><br>
+            <strong>ISP:</strong> <span id="isp"></span><br>
+            <strong>Type:</strong> <span id="type"></span>
+        </div>
+    </div>
+
+    <script>
+        // Canada IP ranges and locations
+        const caIPRanges = [
+            { ip: "192.168.3.100", location: "Toronto, Ontario", isp: "Rogers", type: "Residential" },
+            { ip: "192.168.3.101", location: "Montreal, Quebec", isp: "Bell", type: "Residential" },
+            { ip: "192.168.3.102", location: "Vancouver, British Columbia", isp: "Shaw", type: "Residential" },
+            { ip: "192.168.3.103", location: "Calgary, Alberta", isp: "Telus", type: "Residential" },
+            { ip: "192.168.3.104", location: "Edmonton, Alberta", isp: "Shaw", type: "Residential" },
+            { ip: "192.168.3.105", location: "Ottawa, Ontario", isp: "Bell", type: "Residential" },
+            { ip: "192.168.3.106", location: "Winnipeg, Manitoba", isp: "MTS", type: "Residential" },
+            { ip: "192.168.3.107", location: "Quebec City, Quebec", isp: "Videotron", type: "Residential" },
+            { ip: "192.168.3.108", location: "Hamilton, Ontario", isp: "Cogeco", type: "Residential" },
+            { ip: "192.168.3.109", location: "Halifax, Nova Scotia", isp: "Eastlink", type: "Residential" }
+        ];
+
+        function generateCAIP() {
+            const status = document.getElementById('status');
+            const ipDisplay = document.getElementById('ipDisplay');
+            const locationInfo = document.getElementById('locationInfo');
+            
+            status.textContent = "Generating Canada IP address...";
+            
+            // Simulate API call delay
+            setTimeout(() => {
+                const randomIP = caIPRanges[Math.floor(Math.random() * caIPRanges.length)];
+                
+                document.getElementById('ipAddress').textContent = randomIP.ip;
+                document.getElementById('location').textContent = randomIP.location;
+                document.getElementById('isp').textContent = randomIP.isp;
+                document.getElementById('type').textContent = randomIP.type;
+                
+                ipDisplay.style.display = 'block';
+                locationInfo.style.display = 'block';
+                status.textContent = "Canada IP address generated successfully!";
+                
+                // Return data for Telegram bot
+                const result = {
+                    ip: randomIP.ip,
+                    location: randomIP.location,
+                    isp: randomIP.isp,
+                    type: randomIP.type,
+                    country: "Canada"
+                };
+                
+                // Store result in localStorage for bot access
+                localStorage.setItem('ca_ip_result', JSON.stringify(result));
+                
+                // Also log to console for debugging
+                console.log('Generated Canada IP:', result);
+            }, 1500);
+        }
+
+        // Auto-generate on page load for bot access
+        window.onload = function() {
+            generateCAIP();
+        };
+    </script>
+</body>
+</html>
