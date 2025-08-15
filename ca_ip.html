@@ -88,58 +88,98 @@
     </div>
 
     <script>
-        // Canada IP ranges and locations
-        const caIPRanges = [
-            { ip: "192.168.3.100", location: "Toronto, Ontario", isp: "Rogers", type: "Residential" },
-            { ip: "192.168.3.101", location: "Montreal, Quebec", isp: "Bell", type: "Residential" },
-            { ip: "192.168.3.102", location: "Vancouver, British Columbia", isp: "Shaw", type: "Residential" },
-            { ip: "192.168.3.103", location: "Calgary, Alberta", isp: "Telus", type: "Residential" },
-            { ip: "192.168.3.104", location: "Edmonton, Alberta", isp: "Shaw", type: "Residential" },
-            { ip: "192.168.3.105", location: "Ottawa, Ontario", isp: "Bell", type: "Residential" },
-            { ip: "192.168.3.106", location: "Winnipeg, Manitoba", isp: "MTS", type: "Residential" },
-            { ip: "192.168.3.107", location: "Quebec City, Quebec", isp: "Videotron", type: "Residential" },
-            { ip: "192.168.3.108", location: "Hamilton, Ontario", isp: "Cogeco", type: "Residential" },
-            { ip: "192.168.3.109", location: "Halifax, Nova Scotia", isp: "Eastlink", type: "Residential" }
-        ];
-
-        function generateCAIP() {
+        // API configuration
+        const API_URL = "https://s5proxies.com/admin/api2.php";
+        const PROXY_API_KEY = "6666d116b50b8202406100510306666d116b50c5";
+        
+        async function generateCAIP() {
             const status = document.getElementById('status');
             const ipDisplay = document.getElementById('ipDisplay');
             const locationInfo = document.getElementById('locationInfo');
             
-            status.textContent = "Generating Canada IP address...";
+            status.textContent = "Connecting to API for Canada IP address...";
             
-            // Simulate API call delay
-            setTimeout(() => {
-                const randomIP = caIPRanges[Math.floor(Math.random() * caIPRanges.length)];
+            try {
+                // Search for Canada proxies - any province is fine
+                const searchUrl = `${API_URL}?do=search&key=${PROXY_API_KEY}&country=CA&records=100&pageno=1`;
                 
-                document.getElementById('ipAddress').textContent = randomIP.ip;
-                document.getElementById('location').textContent = randomIP.location;
-                document.getElementById('isp').textContent = randomIP.isp;
-                document.getElementById('type').textContent = randomIP.type;
+                const searchResponse = await fetch(searchUrl);
+                const searchData = await searchResponse.json();
+                
+                if (searchData.status && searchData.status.code === "1000" && searchData.data && searchData.data.length > 0) {
+                    // Get any Canada proxy (first available one)
+                    const selectedProxy = searchData.data[0];
+                    const proxyId = selectedProxy.id;
+                    
+                    // Purchase the proxy
+                    const buyUrl = `${API_URL}?do=buy&key=${PROXY_API_KEY}&id=${proxyId}`;
+                    const buyResponse = await fetch(buyUrl);
+                    const buyData = await buyResponse.json();
+                    
+                    if (buyData.status && buyData.status.code === "1000" && buyData.data) {
+                        const ipData = buyData.data;
+                        const ipAddress = ipData.ipaddress;
+                        const port = ipData.port;
+                        const username = ipData.username || "";
+                        const password = ipData.password || "";
+                        const city = ipData.city || "";
+                        const region = ipData.region || "";
+                        const stateId = ipData.state_id || "";
+                        
+                        // Display the IP
+                        document.getElementById('ipAddress').textContent = `${ipAddress}:${port}`;
+                        document.getElementById('location').textContent = `${city}, ${region}`;
+                        document.getElementById('isp').textContent = stateId;
+                        document.getElementById('type').textContent = "Residential";
+                        
+                        ipDisplay.style.display = 'block';
+                        locationInfo.style.display = 'block';
+                        status.textContent = "Canada IP address generated successfully!";
+                        
+                        // Store result for Telegram bot
+                        const result = {
+                            ip: `${ipAddress}:${port}`,
+                            location: `${city}, ${region}`,
+                            isp: stateId,
+                            type: "Residential",
+                            country: "Canada",
+                            username: username,
+                            password: password
+                        };
+                        
+                        localStorage.setItem('ca_ip_result', JSON.stringify(result));
+                        console.log('Generated Canada IP:', result);
+                    } else {
+                        throw new Error("Failed to purchase proxy");
+                    }
+                } else {
+                    status.textContent = "No Canada proxies available at the moment.";
+                    throw new Error("No Canada proxies found");
+                }
+                
+            } catch (error) {
+                console.error('Error generating Canada IP:', error);
+                status.textContent = "Error generating Canada IP address. Please try again.";
+                
+                // Fallback to dummy data for demonstration
+                const fallbackIP = {
+                    ip: "192.168.3.100:8080",
+                    location: "Toronto, Ontario",
+                    isp: "Rogers",
+                    type: "Residential"
+                };
+                
+                document.getElementById('ipAddress').textContent = fallbackIP.ip;
+                document.getElementById('location').textContent = fallbackIP.location;
+                document.getElementById('isp').textContent = fallbackIP.isp;
+                document.getElementById('type').textContent = fallbackIP.type;
                 
                 ipDisplay.style.display = 'block';
                 locationInfo.style.display = 'block';
-                status.textContent = "Canada IP address generated successfully!";
-                
-                // Return data for Telegram bot
-                const result = {
-                    ip: randomIP.ip,
-                    location: randomIP.location,
-                    isp: randomIP.isp,
-                    type: randomIP.type,
-                    country: "Canada"
-                };
-                
-                // Store result in localStorage for bot access
-                localStorage.setItem('ca_ip_result', JSON.stringify(result));
-                
-                // Also log to console for debugging
-                console.log('Generated Canada IP:', result);
-            }, 1500);
+            }
         }
 
-        // Auto-generate on page load for bot access
+        // Auto-generate on page load
         window.onload = function() {
             generateCAIP();
         };
